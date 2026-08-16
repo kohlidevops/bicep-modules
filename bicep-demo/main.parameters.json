@@ -53,7 +53,9 @@
 
     "nsgName": {
       "value": "demo-nsg"
+    },
+    "routeTableName": {
+      "value": "public-rt"
     }
-
   }
 }
