@@ -17,6 +17,8 @@ param dbPrefix string
 
 param nsgName string
 
+param routeTableName string
+
 module rg './modules/resourceGroup.bicep' = {
   name: 'createRG'
 
@@ -44,6 +46,21 @@ module nsg './modules/nsg.bicep' = {
   }
 }
 
+module routeTable './modules/routeTable.bicep' = {
+  name: 'createRouteTable'
+
+  scope: resourceGroup(resourceGroupName)
+
+  dependsOn: [
+    rg
+  ]
+
+  params: {
+    routeTableName: routeTableName
+    location: location
+  }
+}
+
 module vnet './modules/vnet.bicep' = {
   name: 'createVnet'
 
@@ -51,6 +68,7 @@ module vnet './modules/vnet.bicep' = {
 
   dependsOn: [
     nsg
+    routeTable
   ]
 
   params: {
@@ -69,5 +87,6 @@ module vnet './modules/vnet.bicep' = {
     dbPrefix: dbPrefix
 
     nsgId: nsg.outputs.nsgId
+    routeTableId: routeTable.outputs.routeTableId
   }
 }
