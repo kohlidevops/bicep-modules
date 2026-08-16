@@ -12,13 +12,13 @@ param appPrefix string
 param dbPrefix string
 
 param nsgId string
+param routeTableId string
 
 resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: vnetName
   location: location
 
   properties: {
-
     addressSpace: {
       addressPrefixes: [
         addressSpace
@@ -26,7 +26,6 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
     }
 
     subnets: [
-
       {
         name: webSubnet
 
@@ -35,6 +34,10 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
 
           networkSecurityGroup: {
             id: nsgId
+          }
+
+          routeTable: {
+            id: routeTableId
           }
         }
       }
@@ -62,7 +65,6 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-05-01' = {
           }
         }
       }
-
     ]
   }
 }
