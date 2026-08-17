@@ -12,13 +12,22 @@ az login
 
 ```
 bicep-demo/
+
+Resource Group
 │
-├── main.bicep
-├── main.parameters.json
-└── modules/
-      ├── resourceGroup.bicep
-      ├── vnet.bicep
-      └── nsg.bicep
+├── Virtual Network
+│
+├── Public Subnet
+│     ├── NSG
+│     └── Route Table
+│
+├── App Subnet
+│     ├── NSG
+│     └── NAT Gateway
+│           └── Public IP
+│
+└── DB Subnet
+      └── NSG
 ```
 
 #### Create modules/resourceGroup.bicep
@@ -44,6 +53,8 @@ nano main.parameters.json
 ### Validate the Deployment
 
 ```
+az bicep build --file main.bicep
+
 az deployment sub validate \
     --location centralus \
     --template-file main.bicep \
