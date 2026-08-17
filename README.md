@@ -118,3 +118,12 @@ az deployment sub create \
     --template-file main.bicep \
     --parameters @main.parameters.json
 ```
+
+### Delete the resource
+
+```
+az group delete \
+  --name rg-demo-centralus \
+  --yes \
+  --no-wait
+```
