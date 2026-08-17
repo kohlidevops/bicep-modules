@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 param resourceGroupName string
-param location string
+param location string = 'centralus'
 param tags object
 
 param vnetName string
@@ -16,9 +16,11 @@ param appPrefix string
 param dbPrefix string
 
 param nsgName string
-
 param routeTableName string
+param publicIpName string
+param natGatewayName string
 
+// Resource Group
 module rg './modules/resourceGroup.bicep' = {
   name: 'createRG'
 
@@ -31,14 +33,11 @@ module rg './modules/resourceGroup.bicep' = {
   }
 }
 
+// Network Security Group
 module nsg './modules/nsg.bicep' = {
   name: 'createNSG'
 
   scope: resourceGroup(resourceGroupName)
-
-  dependsOn: [
-    rg
-  ]
 
   params: {
     nsgName: nsgName
@@ -46,14 +45,11 @@ module nsg './modules/nsg.bicep' = {
   }
 }
 
-module routeTable './modules/routeTable.bicep' = {
+// Route Table
+module rt './modules/routeTable.bicep' = {
   name: 'createRouteTable'
 
   scope: resourceGroup(resourceGroupName)
-
-  dependsOn: [
-    rg
-  ]
 
   params: {
     routeTableName: routeTableName
@@ -61,18 +57,38 @@ module routeTable './modules/routeTable.bicep' = {
   }
 }
 
-module vnet './modules/vnet.bicep' = {
-  name: 'createVnet'
+// Public IP
+module pip './modules/publicIp.bicep' = {
+  name: 'createPublicIP'
 
   scope: resourceGroup(resourceGroupName)
 
-  dependsOn: [
-    nsg
-    routeTable
-  ]
+  params: {
+    publicIpName: publicIpName
+    location: location
+  }
+}
+
+// NAT Gateway
+module nat './modules/natGateway.bicep' = {
+  name: 'createNatGateway'
+
+  scope: resourceGroup(resourceGroupName)
 
   params: {
+    natGatewayName: natGatewayName
+    location: location
+    publicIpId: pip.outputs.publicIpId
+  }
+}
 
+// Virtual Network
+module vnet './modules/vnet.bicep' = {
+  name: 'createVNet'
+
+  scope: resourceGroup(resourceGroupName)
+
+  params: {
     vnetName: vnetName
     location: location
 
@@ -87,6 +103,7 @@ module vnet './modules/vnet.bicep' = {
     dbPrefix: dbPrefix
 
     nsgId: nsg.outputs.nsgId
-    routeTableId: routeTable.outputs.routeTableId
+    routeTableId: rt.outputs.routeTableId
+    natGatewayId: nat.outputs.natGatewayId
   }
 }
