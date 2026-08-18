@@ -65,7 +65,6 @@ az deployment sub validate \
 
 ```
 az deployment sub create \
-    --name create-rg-demo \
     --location centralus \
     --template-file main.bicep \
     --parameters @main.parameters.json
@@ -76,14 +75,48 @@ az group list --output table
 #### VNET, NSG Architecture
 
 ```
-bicep-demo/
-│
-├── main.bicep
-├── main.parameters.json
-└── modules/
-      ├── resourceGroup.bicep
-      ├── vnet.bicep
-      └── nsg.bicep
+                                      Azure Subscription
+                                              │
+                                              │
+                                  Resource Group
+                                 rg-demo-centralus
+                                              │
+ ┌────────────────────────────────────────────┼────────────────────────────────────────────┐
+ │                                            │                                            │
+ │                                   Network Security Group                               │
+ │                                        demo-nsg                                        │
+ │                                            │                                            │
+ │                                    Route Table (UDR)                                   │
+ │                                        public-rt                                       │
+ │                                            │                                            │
+ │                                    NAT Gateway                                          │
+ │                                      demo-nat                                           │
+ │                                            │                                             │
+ │                                      Public IP                                           │
+ │                                        nat-pip                                           │
+ │
+ │
+ └────────────────────────────── Virtual Network ───────────────────────────────────────────
+                                demo-vnet (10.0.0.0/16)
+
+        ┌────────────────────────────┬────────────────────────────┬────────────────────────────┬────────────────────────────┐
+        │                            │                            │                            │
+        │                            │                            │                            │
+ Public Subnet                 App Subnet                  DB Subnet               AzureBastionSubnet
+ 10.0.1.0/24                   10.0.2.0/24                10.0.3.0/24               10.0.10.0/26
+        │                            │                            │                            │
+        │                            │                            │                            │
+      NSG                         NSG                         NSG                   Azure Bastion
+        │                            │                                                      │
+ Route Table                    Route Table                                               Public IP
+        │                            │                                                      │
+        │                      NAT Gateway                                                  │
+        │                            │                                                      │
+        │                       Ubuntu VM                                                   │
+        │                     app-vm01 (Private IP)                                         │
+        │                            ▲                                                      │
+        └────────────────────────────┴──────────────────────────────────────────────────────┘
+                                     Secure SSH via Bastion
 ```
 
 #### Create modules/nsg.bicep
