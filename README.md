@@ -13,21 +13,32 @@ az login
 ```
 bicep-demo/
 
-Resource Group
+Resource Group (rg-demo-centralus)
 │
-├── Virtual Network
+├── Virtual Network (demo-vnet)
+│   │
+│   ├── Public Subnet (10.0.1.0/24)
+│   │     ├── Network Security Group (demo-nsg)
+│   │     └── Route Table (public-rt)
+│   │
+│   ├── App Subnet (10.0.2.0/24)
+│   │     ├── Network Security Group (demo-nsg)
+│   │     ├── Route Table (public-rt)
+│   │     ├── NAT Gateway (demo-nat)
+│   │     │     └── Public IP (nat-pip)
+│   │     └── Ubuntu VM (app-vm01)
+│   │           └── Network Interface (app-vm01-nic)
+│   │
+│   ├── DB Subnet (10.0.3.0/24)
+│   │     └── Network Security Group (demo-nsg)
+│   │
+│   └── AzureBastionSubnet (10.0.10.0/26)
+│         └── Azure Bastion (demo-bastion)
+│               └── Public IP (demo-bastion-pip)
 │
-├── Public Subnet
-│     ├── NSG
-│     └── Route Table
-│
-├── App Subnet
-│     ├── NSG
-│     └── NAT Gateway
-│           └── Public IP
-│
-└── DB Subnet
-      └── NSG
+└── Tags
+      ├── Environment = Dev
+      └── Project = Demo
 ```
 
 #### Create modules/resourceGroup.bicep
