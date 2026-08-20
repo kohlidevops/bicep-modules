@@ -171,3 +171,129 @@ az group delete \
   --yes \
   --no-wait
 ```
+
+# GitHub Actions with OIDC to deploy resources using bicep modules
+
+## Get Azure IDs
+
+```
+az account show \
+  --query "{SubscriptionId:id,SubscriptionName:name,TenantId:tenantId}" \
+  --output table
+
+save
+
+Subscription ID
+Tenant ID
+```
+
+## Create Entra App Registration
+
+```
+CLIENT_ID=$(az ad app create \
+  --display-name "github-bicep-demo" \
+  --query appId \
+  --output tsv)
+
+echo $CLIENT_ID
+```
+
+The output is your Client ID.
+
+Create the service principal:
+
+```
+az ad sp create --id "$CLIENT_ID"
+```
+
+## Give Azure permissions
+
+```
+SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+
+az role assignment create \
+  --assignee "$CLIENT_ID" \
+  --role Contributor \
+  --scope "/subscriptions/$SUBSCRIPTION_ID"
+```
+
+## Create the Federated Credential
+
+Create:
+
+```
+nano federated-credential.json
+```
+
+Use:
+
+```
+{
+  "name": "github-main",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:kohlidevops@100069489/bicep-modules@1333832188:ref:refs/heads/main",
+  "description": "GitHub Actions OIDC for bicep-modules main branch",
+  "audiences": [
+    "api://AzureADTokenExchange"
+  ]
+}
+```
+
+Then:
+
+
+```
+az ad app federated-credential create \
+  --id "$CLIENT_ID" \
+  --parameters federated-credential.json
+```
+
+## Add GitHub Secrets
+
+Go to:
+
+```
+GitHub Repository
+ → Settings
+ → Secrets and variables
+ → Actions
+ → New repository secret
+```
+
+Create:
+
+```
+AZURE_CLIENT_ID
+AZURE_TENANT_ID
+AZURE_SUBSCRIPTION_ID
+```
+
+Get the values with:
+
+```
+echo $CLIENT_ID
+
+az account show --query tenantId --output tsv
+
+az account show --query id --output tsv
+```
+
+## Create GitHub Actions workflow for deployment
+
+Create:
+
+```
+.github/workflows/deploy.yml
+```
+
+file:
+
+```
+https://github.com/kohlidevops/bicep-modules/blob/main/.github/workflows/deploy.yml
+```
+
+##  Create GitHub Actions workflow for terminate
+
+```
+https://github.com/kohlidevops/bicep-modules/blob/main/.github/workflows/delete.yml
+```
